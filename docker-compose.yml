@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgresql:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: paymentsdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d
+
+  anti-fraud-service:
+    image: wiremock/wiremock:3.9.1
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./anti-fraud-service/mappings:/home/wiremock/mappings
+      - ./anti-fraud-service/__files:/home/wiremock/__files
+
+  bank-service:
+    image: wiremock/wiremock:3.9.1
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./bank-service/mappings:/home/wiremock/mappings
+      - ./bank-service/__files:/home/wiremock/__files
+
+  tokenizer-service:
+    build:
+      context: ./tokenizer-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgresql
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/paymentsdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+
+  payment-service:
+    build:
+      context: ./payment-service
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgresql
+      - tokenizer-service
+      - anti-fraud-service
+      - bank-service
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresql:5432/paymentsdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - tokenizer.service.url=http://tokenizer-service:8082/api/v1
+      - anti-fraud.service.url=http://anti-fraud-service:8080/api/anti-fraud
+      - bank.service.url=http://bank-service:8080/api/bank

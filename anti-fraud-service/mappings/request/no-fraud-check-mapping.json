@@ -1,0 +1,15 @@
+{
+  "priority": 2,
+  "request": {
+    "method": "POST",
+    "url": "/api/anti-fraud/check"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "response/no-fraud-check-response.json",
+    "headers": {
+      "Content-Type": "application/json",
+      "Connection": "keep-alive"
+    }
+  }
+}

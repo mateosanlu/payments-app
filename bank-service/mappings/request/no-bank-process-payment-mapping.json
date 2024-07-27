@@ -1,0 +1,14 @@
+{
+  "priority": 2,
+  "request": {
+    "method": "POST",
+    "url": "/api/bank/process"
+  },
+  "response": {
+    "status": 200,
+    "bodyFileName": "response/bank-payment-success-response.json",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
